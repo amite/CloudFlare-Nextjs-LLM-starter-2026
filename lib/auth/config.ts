@@ -1,3 +1,6 @@
+import { users } from "@/drizzle/schema";
+import { getLocalDb } from "@/lib/db";
+import { eq } from "drizzle-orm";
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
@@ -57,11 +60,47 @@ export const authConfig: NextAuthConfig = {
 
         // Demo user for testing (remove in production)
         if (parsed.data.email === "demo@example.com" && parsed.data.password === "password123") {
-          return {
-            id: "demo-user-id",
-            email: parsed.data.email,
-            name: "Demo User",
-          };
+          // Try to find or create the demo user in the database
+          try {
+            const db = getLocalDb();
+            const existingUsers = await db
+              .select()
+              .from(users)
+              .where(eq(users.email, parsed.data.email))
+              .limit(1);
+
+            if (existingUsers.length > 0) {
+              return {
+                id: existingUsers[0].id,
+                email: existingUsers[0].email,
+                name: existingUsers[0].name,
+              };
+            }
+
+            // Create the demo user if it doesn't exist
+            const newUsers = await db
+              .insert(users)
+              .values({
+                email: parsed.data.email,
+                name: "Demo User",
+                emailVerified: new Date(),
+              })
+              .returning();
+
+            return {
+              id: newUsers[0].id,
+              email: newUsers[0].email,
+              name: newUsers[0].name,
+            };
+          } catch (error) {
+            console.error("Error creating demo user:", error);
+            // Fallback to in-memory user if database fails
+            return {
+              id: "demo-user-id",
+              email: parsed.data.email,
+              name: "Demo User",
+            };
+          }
         }
 
         return null;

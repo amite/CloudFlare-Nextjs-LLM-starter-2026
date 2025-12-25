@@ -43,9 +43,7 @@ export default function SignInPage() {
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <Link href="/" className="font-bold text-2xl">
-            CF Next LLM
-          </Link>
+          <h1 className="font-bold text-2xl">Sign In</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">Sign in to your account</p>
         </div>
 
