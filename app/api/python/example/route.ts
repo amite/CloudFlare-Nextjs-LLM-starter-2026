@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
 import { getEnv } from "@/lib/cloudflare";
 import { createRequestLogger } from "@/lib/logger";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
 export const runtime = "edge";
 
 const requestSchema = z.object({
   data: z.string(),
-  options: z.record(z.unknown()).optional(),
+  options: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function POST(request: Request) {
@@ -31,10 +31,7 @@ export async function POST(request: Request) {
 
     if (!pythonServiceSecret) {
       logger.warn("Python service secret not configured");
-      return NextResponse.json(
-        { error: "Python service not configured" },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: "Python service not configured" }, { status: 503 });
     }
 
     logger.info("Calling Python service", { endpoint: "/process" });
@@ -61,10 +58,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const data = await response.json();
+    const data: unknown = await response.json();
 
     logger.info("Python service response received", {
-      hasResult: !!data.result,
+      hasResult: !!(data as { result?: unknown }).result,
     });
 
     return NextResponse.json(data);
@@ -93,7 +90,7 @@ export async function GET() {
     const pythonServiceUrl = env.PYTHON_SERVICE_URL || "http://localhost:8000";
 
     const response = await fetch(`${pythonServiceUrl}/health`);
-    const data = await response.json();
+    const data: unknown = await response.json();
 
     return NextResponse.json({
       pythonService: data,

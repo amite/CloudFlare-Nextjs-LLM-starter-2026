@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
 import {
-  calculateCost,
-  MODEL_PRICING,
   DEFAULT_MODELS,
+  MODEL_PRICING,
+  assistantMessage,
+  calculateCost,
   systemMessage,
   userMessage,
-  assistantMessage,
 } from "@/lib/llm";
+import { describe, expect, it } from "vitest";
 
 describe("LLM utilities", () => {
   describe("calculateCost", () => {
@@ -58,7 +58,7 @@ describe("LLM utilities", () => {
     });
 
     it("should have input and output pricing for each model", () => {
-      for (const [model, pricing] of Object.entries(MODEL_PRICING)) {
+      for (const [_model, pricing] of Object.entries(MODEL_PRICING)) {
         expect(pricing.input).toBeTypeOf("number");
         expect(pricing.output).toBeTypeOf("number");
         expect(pricing.input).toBeGreaterThan(0);

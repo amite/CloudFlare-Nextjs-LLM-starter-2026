@@ -1,8 +1,8 @@
+import { getDatabase } from "@/lib/cloudflare";
+import { costTracker } from "@/lib/cost-tracker";
+import { createRequestLogger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { costTracker } from "@/lib/cost-tracker";
-import { getDatabase } from "@/lib/cloudflare";
-import { createRequestLogger } from "@/lib/logger";
 
 export const runtime = "edge";
 
@@ -39,10 +39,7 @@ export async function GET(request: Request) {
       costTracker.setDatabase(db);
     } catch {
       logger.warn("Database not available for usage summary");
-      return NextResponse.json(
-        { error: "Database not available" },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: "Database not available" }, { status: 503 });
     }
 
     const options = {
@@ -54,10 +51,7 @@ export async function GET(request: Request) {
     const summary = await costTracker.getSummary(options);
 
     if (!summary) {
-      return NextResponse.json(
-        { error: "Failed to get usage summary" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to get usage summary" }, { status: 500 });
     }
 
     logger.info("Usage summary retrieved", {

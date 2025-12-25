@@ -20,16 +20,6 @@
     },
     "types": ["@cloudflare/workers-types"]
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "open-next.config.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    ".open-next",
-    "python-services"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "open-next.config.ts"],
+  "exclude": ["node_modules", ".open-next", "python-services"]
 }

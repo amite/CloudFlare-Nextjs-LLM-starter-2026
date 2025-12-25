@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Logger, createRequestLogger } from "@/lib/logger";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("Logger", () => {
   beforeEach(() => {

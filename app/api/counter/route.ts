@@ -1,8 +1,8 @@
+import { counters } from "@/drizzle/schema";
+import { getDatabase } from "@/lib/cloudflare";
+import { createRequestLogger } from "@/lib/logger";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { getDatabase } from "@/lib/cloudflare";
-import { counters } from "@/drizzle/schema";
-import { createRequestLogger } from "@/lib/logger";
 
 export const runtime = "edge";
 
@@ -42,11 +42,14 @@ export async function POST(request: Request) {
   const logger = createRequestLogger(requestId);
 
   try {
-    const body = await request.json();
-    const action = body.action as "increment" | "decrement";
+    const body: unknown = await request.json();
+    const action = (body as { action?: string }).action as "increment" | "decrement";
 
     if (!action || !["increment", "decrement"].includes(action)) {
-      return NextResponse.json({ error: "Invalid action. Use 'increment' or 'decrement'" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid action. Use 'increment' or 'decrement'" },
+        { status: 400 }
+      );
     }
 
     const db = await getDatabase();

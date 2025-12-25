@@ -1,5 +1,5 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { streamText, generateText } from "ai";
+import { generateText, streamText } from "ai";
 import type { LLMConfig, LLMMessage, LLMResponse, LLMUsage } from "./types";
 
 export interface GeminiConfig extends Omit<LLMConfig, "provider"> {
@@ -53,15 +53,19 @@ export async function streamGeminiChat(
 
   return {
     stream,
-    usage: result.then(() => finalUsage),
-    response: result.then(
-      (): LLMResponse => ({
+    usage: (async () => {
+      await result;
+      return finalUsage;
+    })(),
+    response: (async (): Promise<LLMResponse> => {
+      await result;
+      return {
         content: fullContent,
         usage: finalUsage,
         model,
         provider: "gemini",
-      })
-    ),
+      };
+    })(),
   };
 }
 

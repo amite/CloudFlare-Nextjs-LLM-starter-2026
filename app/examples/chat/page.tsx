@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
 import { useChat } from "ai/react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 type Provider = "openai" | "gemini";
 
@@ -26,6 +26,7 @@ export default function ChatPage() {
   });
 
   // Auto-scroll to bottom when new messages arrive
+  // biome-ignore lint/correctness/useExhaustiveDependencies: messages dependency is needed for auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -41,11 +42,11 @@ export default function ChatPage() {
         <div>
           <Link
             href="/"
-            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            className="text-gray-500 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
             ← Back to Home
           </Link>
-          <h1 className="mt-1 text-2xl font-bold">LLM Chat Demo</h1>
+          <h1 className="mt-1 font-bold text-2xl">LLM Chat Demo</h1>
         </div>
 
         <div className="flex items-center gap-3">
@@ -59,7 +60,12 @@ export default function ChatPage() {
             <option value="gemini">Gemini</option>
           </select>
 
-          <button type="button" onClick={clearChat} className="btn btn-ghost text-sm" disabled={isLoading}>
+          <button
+            type="button"
+            onClick={clearChat}
+            className="btn btn-ghost text-sm"
+            disabled={isLoading}
+          >
             Clear
           </button>
         </div>
@@ -67,10 +73,14 @@ export default function ChatPage() {
 
       {/* Error display */}
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-red-700 text-sm dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
           <p className="font-medium">Error</p>
           <p>{error.message}</p>
-          <button type="button" onClick={() => reload()} className="mt-2 text-red-600 underline dark:text-red-400">
+          <button
+            type="button"
+            onClick={() => reload()}
+            className="mt-2 text-red-600 underline dark:text-red-400"
+          >
             Try again
           </button>
         </div>
@@ -132,14 +142,15 @@ export default function ChatPage() {
       </form>
 
       {/* Info box */}
-      <div className="mt-4 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400">
+      <div className="mt-4 rounded-md border border-gray-200 bg-gray-50 p-3 text-gray-500 text-xs dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400">
         <p>
           <strong>Features:</strong> Real-time streaming • Token counting • Cost tracking •
           Multi-provider support
         </p>
         <p className="mt-1">
-          Configure API keys in <code className="rounded bg-gray-200 px-1 dark:bg-gray-700">.env</code>{" "}
-          file: <code className="rounded bg-gray-200 px-1 dark:bg-gray-700">OPENAI_API_KEY</code> and{" "}
+          Configure API keys in{" "}
+          <code className="rounded bg-gray-200 px-1 dark:bg-gray-700">.env</code> file:{" "}
+          <code className="rounded bg-gray-200 px-1 dark:bg-gray-700">OPENAI_API_KEY</code> and{" "}
           <code className="rounded bg-gray-200 px-1 dark:bg-gray-700">GEMINI_API_KEY</code>
         </p>
       </div>

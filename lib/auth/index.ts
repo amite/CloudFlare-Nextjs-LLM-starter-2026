@@ -1,7 +1,7 @@
-import NextAuth from "next-auth";
-import { D1Adapter } from "@auth/d1-adapter";
-import { authConfig } from "./config";
 import type { CloudflareEnvWithSecrets } from "@/lib/cloudflare";
+import { D1Adapter } from "@auth/d1-adapter";
+import NextAuth from "next-auth";
+import { authConfig } from "./config";
 
 /**
  * Create Auth.js instance with D1 adapter.

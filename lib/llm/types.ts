@@ -7,7 +7,7 @@ export interface LLMMessage {
 
 export interface LLMConfig {
   provider: LLMProvider;
-  model: string;
+  model?: string;
   temperature?: number;
   maxTokens?: number;
   apiKey: string;

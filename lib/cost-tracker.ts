@@ -1,8 +1,8 @@
-import { eq, sql, and, gte, lte } from "drizzle-orm";
-import { usageLogs, type NewUsageLog } from "@/drizzle/schema";
+import { type NewUsageLog, usageLogs } from "@/drizzle/schema";
+import { and, eq, gte, lte, sql } from "drizzle-orm";
 import type { Database } from "./db";
-import { logger, type LLMLogContext } from "./logger";
-import { calculateCost, type LLMUsage, type LLMProvider } from "./llm/types";
+import { type LLMProvider, type LLMUsage, calculateCost } from "./llm/types";
+import { type LLMLogContext, logger } from "./logger";
 
 export interface CostTrackerConfig {
   enabled?: boolean;
@@ -144,11 +144,13 @@ export class CostTracker {
   /**
    * Get usage summary for a time period.
    */
-  async getSummary(options: {
-    startDate?: Date;
-    endDate?: Date;
-    userId?: string;
-  } = {}): Promise<UsageSummary | null> {
+  async getSummary(
+    options: {
+      startDate?: Date;
+      endDate?: Date;
+      userId?: string;
+    } = {}
+  ): Promise<UsageSummary | null> {
     if (!this.db) return null;
 
     const conditions = [];

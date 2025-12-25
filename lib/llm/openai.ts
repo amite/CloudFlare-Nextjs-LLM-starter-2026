@@ -1,5 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { streamText, generateText } from "ai";
+import { generateText, streamText } from "ai";
 import type { LLMConfig, LLMMessage, LLMResponse, LLMUsage } from "./types";
 import { calculateCost } from "./types";
 
@@ -55,15 +55,19 @@ export async function streamOpenAIChat(
 
   return {
     stream,
-    usage: result.then(() => finalUsage),
-    response: result.then(
-      (): LLMResponse => ({
+    usage: (async () => {
+      await result;
+      return finalUsage;
+    })(),
+    response: (async (): Promise<LLMResponse> => {
+      await result;
+      return {
         content: fullContent,
         usage: finalUsage,
         model,
         provider: "openai",
-      })
-    ),
+      };
+    })(),
   };
 }
 
@@ -111,7 +115,11 @@ export function estimateTokenCount(text: string): number {
 /**
  * Estimate cost before making an API call.
  */
-export function estimateCost(messages: LLMMessage[], model: string, maxOutputTokens = 2048): number {
+export function estimateCost(
+  messages: LLMMessage[],
+  model: string,
+  maxOutputTokens = 2048
+): number {
   const inputText = messages.map((m) => m.content).join(" ");
   const inputTokens = estimateTokenCount(inputText);
 

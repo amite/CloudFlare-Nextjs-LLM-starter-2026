@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
+import { useEffect, useState, useTransition } from "react";
 
 interface Counter {
   id: number;
@@ -24,8 +24,8 @@ export default function CounterPage() {
     try {
       const res = await fetch("/api/counter");
       if (!res.ok) throw new Error("Failed to fetch counter");
-      const data = await res.json();
-      setCounter(data);
+      const data: unknown = await res.json();
+      setCounter(data as Counter);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -33,6 +33,7 @@ export default function CounterPage() {
   }
 
   async function updateCounter(action: "increment" | "decrement") {
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: optimistic updates require this structure
     startTransition(async () => {
       // Optimistic update
       if (counter) {
@@ -50,8 +51,8 @@ export default function CounterPage() {
         });
 
         if (!res.ok) throw new Error("Failed to update counter");
-        const data = await res.json();
-        setCounter(data);
+        const data: unknown = await res.json();
+        setCounter(data as Counter);
         setError(null);
       } catch (err) {
         // Revert on error
@@ -66,13 +67,13 @@ export default function CounterPage() {
       <div className="mb-6">
         <Link
           href="/"
-          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          className="text-gray-500 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
         >
           ← Back to Home
         </Link>
       </div>
 
-      <h1 className="mb-2 text-3xl font-bold">Counter Example</h1>
+      <h1 className="mb-2 font-bold text-3xl">Counter Example</h1>
       <p className="mb-8 text-gray-600 dark:text-gray-400">
         This example demonstrates CRUD operations with D1/SQLite using Drizzle ORM and Server
         Actions with optimistic updates.
@@ -87,10 +88,8 @@ export default function CounterPage() {
       <div className="card">
         <div className="flex flex-col items-center gap-6">
           <div className="text-center">
-            <span className="block text-6xl font-bold tabular-nums">
-              {counter?.value ?? "-"}
-            </span>
-            <span className="mt-2 block text-sm text-gray-500 dark:text-gray-400">
+            <span className="block font-bold text-6xl tabular-nums">{counter?.value ?? "-"}</span>
+            <span className="mt-2 block text-gray-500 text-sm dark:text-gray-400">
               Counter: {counter?.name ?? "loading..."}
             </span>
           </div>
@@ -115,7 +114,7 @@ export default function CounterPage() {
           </div>
 
           {counter?.updatedAt && (
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-gray-400 text-xs dark:text-gray-500">
               Last updated: {new Date(counter.updatedAt).toLocaleString()}
             </p>
           )}
@@ -124,15 +123,15 @@ export default function CounterPage() {
 
       <div className="mt-8 rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
         <h2 className="mb-2 font-semibold">How it works</h2>
-        <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+        <ul className="space-y-1 text-gray-600 text-sm dark:text-gray-400">
           <li>
-            • Data is stored in <code className="rounded bg-gray-200 px-1 dark:bg-gray-700">D1</code>{" "}
-            (Cloudflare) or{" "}
+            • Data is stored in{" "}
+            <code className="rounded bg-gray-200 px-1 dark:bg-gray-700">D1</code> (Cloudflare) or{" "}
             <code className="rounded bg-gray-200 px-1 dark:bg-gray-700">SQLite</code> (local)
           </li>
           <li>
-            • <code className="rounded bg-gray-200 px-1 dark:bg-gray-700">Drizzle ORM</code> provides
-            type-safe database operations
+            • <code className="rounded bg-gray-200 px-1 dark:bg-gray-700">Drizzle ORM</code>{" "}
+            provides type-safe database operations
           </li>
           <li>• Optimistic updates for instant UI feedback</li>
           <li>• API routes handle the database operations</li>

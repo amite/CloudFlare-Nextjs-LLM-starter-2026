@@ -6,8 +6,6 @@ async function seed() {
   const sqlite = new Database(process.env.DATABASE_URL?.replace("file:", "") || "./local.db");
   const db = drizzle(sqlite);
 
-  console.log("🌱 Seeding database...");
-
   // Create default counter
   const existingCounter = await db.select().from(counters).limit(1);
 
@@ -16,12 +14,8 @@ async function seed() {
       name: "default",
       value: 0,
     });
-    console.log("✅ Created default counter");
   } else {
-    console.log("ℹ️  Default counter already exists");
   }
-
-  console.log("🌱 Seeding complete!");
   sqlite.close();
 }
 

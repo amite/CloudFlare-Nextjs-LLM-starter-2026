@@ -1,7 +1,7 @@
-import { streamOpenAIChat, generateOpenAIChat } from "./openai";
-import { streamGeminiChat, generateGeminiChat } from "./gemini";
-import type { LLMProvider, LLMMessage, LLMResponse, LLMUsage, LLMConfig } from "./types";
-import { DEFAULT_MODELS, calculateCost } from "./types";
+import { generateGeminiChat, streamGeminiChat } from "./gemini";
+import { generateOpenAIChat, streamOpenAIChat } from "./openai";
+import type { LLMConfig, LLMMessage, LLMProvider, LLMResponse, LLMUsage } from "./types";
+import { DEFAULT_MODELS } from "./types";
 
 export * from "./types";
 export * from "./openai";
@@ -36,12 +36,11 @@ export interface StreamChatResult {
  */
 export async function streamChat(options: StreamChatOptions): Promise<StreamChatResult> {
   const provider =
-    options.provider ||
-    (options.env?.DEFAULT_LLM_PROVIDER as LLMProvider) ||
-    "openai";
+    options.provider || (options.env?.DEFAULT_LLM_PROVIDER as LLMProvider) || "openai";
   const model = options.model || DEFAULT_MODELS[provider];
 
-  const apiKey = options.apiKey ||
+  const apiKey =
+    options.apiKey ||
     (provider === "openai" ? options.env?.OPENAI_API_KEY : options.env?.GEMINI_API_KEY);
 
   if (!apiKey) {
@@ -73,12 +72,11 @@ export async function streamChat(options: StreamChatOptions): Promise<StreamChat
  */
 export async function generateChat(options: StreamChatOptions): Promise<LLMResponse> {
   const provider =
-    options.provider ||
-    (options.env?.DEFAULT_LLM_PROVIDER as LLMProvider) ||
-    "openai";
+    options.provider || (options.env?.DEFAULT_LLM_PROVIDER as LLMProvider) || "openai";
   const model = options.model || DEFAULT_MODELS[provider];
 
-  const apiKey = options.apiKey ||
+  const apiKey =
+    options.apiKey ||
     (provider === "openai" ? options.env?.OPENAI_API_KEY : options.env?.GEMINI_API_KEY);
 
   if (!apiKey) {

@@ -1,9 +1,9 @@
+import { getDatabase, getEnv } from "@/lib/cloudflare";
+import { costTracker } from "@/lib/cost-tracker";
+import { type LLMProvider, streamChat } from "@/lib/llm";
+import { createRequestLogger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { streamChat, type LLMProvider } from "@/lib/llm";
-import { costTracker } from "@/lib/cost-tracker";
-import { createRequestLogger } from "@/lib/logger";
-import { getEnv, getDatabase } from "@/lib/cloudflare";
 
 export const runtime = "edge";
 
@@ -63,31 +63,33 @@ export async function POST(request: Request) {
     });
 
     // Track usage after stream completes (non-blocking)
-    result.response.then(async (response) => {
-      const latencyMs = Date.now() - startTime;
+    result.response
+      .then(async (response) => {
+        const latencyMs = Date.now() - startTime;
 
-      await costTracker.track({
-        requestId,
-        provider: response.provider,
-        model: response.model,
-        usage: response.usage,
-        latencyMs,
-        status: "success",
-        endpoint: "/api/chat/stream",
-      });
+        await costTracker.track({
+          requestId,
+          provider: response.provider,
+          model: response.model,
+          usage: response.usage,
+          latencyMs,
+          status: "success",
+          endpoint: "/api/chat/stream",
+        });
 
-      logger.info("LLM stream completed", {
-        provider: response.provider,
-        model: response.model,
-        inputTokens: response.usage.inputTokens,
-        outputTokens: response.usage.outputTokens,
-        latencyMs,
+        logger.info("LLM stream completed", {
+          provider: response.provider,
+          model: response.model,
+          inputTokens: response.usage.inputTokens,
+          outputTokens: response.usage.outputTokens,
+          latencyMs,
+        });
+      })
+      .catch((error) => {
+        logger.error("Failed to track usage", {
+          error: error instanceof Error ? error.message : String(error),
+        });
       });
-    }).catch((error) => {
-      logger.error("Failed to track usage", {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    });
 
     return new Response(result.stream, {
       headers: {
