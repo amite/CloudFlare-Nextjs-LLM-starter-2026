@@ -477,6 +477,7 @@ Uses **SQLite with better-sqlite3**:
 - No network latency
 - Instant testing and iteration
 - Seeded with demo user
+- Auth route uses Node.js runtime to access `better-sqlite3`
 
 **Start development:**
 ```bash
@@ -491,31 +492,428 @@ pnpm dev
 Uses **Cloudflare D1**:
 - Serverless SQLite at the edge
 - Global distribution
-- Secure environment variables
+- Secure environment variables via Cloudflare Secrets
 - Automatic backups
+- Auth route transformed by OpenNext to work with D1 bindings
 
-**Deployment:**
-```bash
-wrangler d1 create cf-next-llm-db
-# Copy database_id to wrangler.jsonc
-wrangler secret put AUTH_SECRET
-wrangler secret put GITHUB_CLIENT_ID
-# ... set other secrets
-wrangler d1 migrations apply cf-next-llm-db --remote
-pnpm deploy
-```
+### Database Selection Logic
 
-### Database Selection Logic (`lib/cloudflare.ts`)
+The authentication system automatically selects the correct database based on environment:
 
+**`lib/auth/index.ts`:**
 ```typescript
-export function getDatabase(): DbInstance {
+export function createAuth(env: CloudflareEnvWithSecrets) {
+  let database;
+
+  // Use appropriate database based on environment
   if (process.env.NODE_ENV === "development") {
-    return getLocalDb();  // SQLite via better-sqlite3
+    database = getLocalDb(); // Uses better-sqlite3 → ./local.db
   } else {
-    return getDb(env);    // Cloudflare D1
+    database = getDb(env); // Uses Cloudflare D1 via Drizzle ORM
   }
+
+  // Create schema object in the format expected by DrizzleAdapter
+  const adapterSchema = {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+    authenticatorsTable: authenticators,
+  };
+
+  return NextAuth({
+    ...authConfig,
+    adapter: DrizzleAdapter(database, adapterSchema),
+    secret: env.AUTH_SECRET,
+  });
 }
 ```
+
+**Key Points:**
+- Uses `@auth/drizzle-adapter` which works with both SQLite and D1
+- Schema structure must match DrizzleAdapter expectations (uses `*Table` suffix keys)
+- Database selection happens at runtime based on `NODE_ENV`
+- No code changes needed - same code works in both environments
+
+### Runtime Configuration
+
+**`app/api/auth/[...nextauth]/route.ts`:**
+```typescript
+export const runtime = "nodejs";  // Required for both dev and prod
+
+async function handler(request: Request) {
+  const env = await getEnv();
+  const { handlers } = createAuth(env);
+  // ... handler logic
+}
+```
+
+**Important:**
+- Uses Node.js runtime (not edge) to support database adapters
+- OpenNext automatically adapts this route for Cloudflare Workers during build
+- Works seamlessly in both development and production
+
+---
+
+## Production Deployment Checklist
+
+This section covers the critical steps to deploy authentication to Cloudflare Workers while maintaining the dual SQLite (dev) / D1 (prod) architecture.
+
+### 1. Create D1 Database
+
+```bash
+# Create a new D1 database
+wrangler d1 create cf-next-llm-db
+
+# Note: Copy the database_id from the output
+# You'll need it in the next step
+```
+
+Example output:
+```
+✓ Successfully created DB "cf-next-llm-db"
+Database ID: 12345678-1234-1234-1234-123456789012
+```
+
+### 2. Update wrangler.jsonc
+
+Add the D1 database binding to your Wrangler configuration:
+
+```jsonc
+{
+  // ... existing config ...
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cf-next-llm-db",
+      "database_id": "YOUR_DATABASE_ID_HERE"  // Replace with ID from step 1
+    }
+  ]
+  // ... rest of config ...
+}
+```
+
+**Important:** This binding must be named `DB` to match the `CloudflareEnvWithSecrets` type in `lib/cloudflare.ts`.
+
+### 3. Set Environment Secrets
+
+Store all sensitive credentials as Cloudflare Secrets:
+
+```bash
+# Authentication
+wrangler secret put AUTH_SECRET
+# Paste: (output from: openssl rand -base64 32)
+
+# GitHub OAuth (if using)
+wrangler secret put GITHUB_CLIENT_ID
+wrangler secret put GITHUB_CLIENT_SECRET
+
+# Google OAuth (if using)
+wrangler secret put GOOGLE_CLIENT_ID
+wrangler secret put GOOGLE_CLIENT_SECRET
+
+# Auth.js Base URL (critical for OAuth callbacks)
+wrangler secret put NEXTAUTH_URL
+# Paste: https://your-app-name.your-subdomain.workers.dev
+
+# LLM Keys
+wrangler secret put OPENAI_API_KEY
+wrangler secret put GEMINI_API_KEY
+```
+
+### 4. Update OAuth Provider Settings
+
+For each OAuth provider (GitHub, Google), add your production URL to authorized redirect URIs:
+
+**Google Cloud Console:**
+- Go to: APIs & Services → Credentials
+- Edit OAuth app credentials
+- Add Authorized redirect URIs:
+  ```
+  https://your-app-name.your-subdomain.workers.dev/api/auth/callback/google
+  ```
+
+**GitHub Developer Settings:**
+- Go to: Settings → Developer settings → OAuth Apps
+- Edit your app
+- Update Authorization callback URL:
+  ```
+  https://your-app-name.your-subdomain.workers.dev/api/auth/callback/github
+  ```
+
+**Local Development (remains the same):**
+- `http://localhost:3000/api/auth/callback/google`
+- `http://localhost:3000/api/auth/callback/github`
+
+### 5. Apply Database Migrations
+
+Push your database schema to production D1:
+
+```bash
+# Apply all pending migrations to production D1
+wrangler d1 migrations apply cf-next-llm-db --remote
+
+# Expected output: Shows all tables created in D1
+```
+
+**What this does:**
+- Creates all auth tables: `users`, `accounts`, `sessions`, `verificationTokens`, `authenticators`
+- Creates other tables: `counters`, `usageMetrics`
+- Sets up foreign key relationships and cascade deletes
+
+### 6. Build and Deploy
+
+Build the app for Cloudflare Workers and deploy:
+
+```bash
+# Build for production (uses OpenNext to adapt Next.js code)
+pnpm build
+
+# Deploy to Cloudflare Workers
+pnpm deploy
+
+# Alternative: build and deploy in one step
+pnpm build && pnpm deploy
+```
+
+**What happens during build:**
+- OpenNext transforms the Next.js app for Cloudflare Workers
+- Node.js runtime routes (like auth) are adapted to work with Cloudflare context
+- Assets are bundled for edge distribution
+
+### 7. Verify Production Deployment
+
+Test that authentication works in production:
+
+```bash
+# Get your workers domain (shown after deploy)
+# https://your-app-name.your-subdomain.workers.dev
+
+# Test sign-in
+open https://your-app-name.your-subdomain.workers.dev/auth/signin
+
+# Test OAuth flow
+# - Click "Sign in with Google" or "Sign in with GitHub"
+# - Verify redirect back to dashboard
+# - Check that user was created in D1
+
+# Test protected route
+open https://your-app-name.your-subdomain.workers.dev/dashboard
+# Should require authentication
+```
+
+### 8. Verify Database in Production
+
+Check that users and accounts are being stored in D1:
+
+```bash
+# Query production D1 database
+wrangler d1 execute cf-next-llm-db --remote \
+  --command "SELECT email, name FROM users LIMIT 5;"
+
+# View OAuth accounts linked to users
+wrangler d1 execute cf-next-llm-db --remote \
+  --command "SELECT provider, type FROM accounts LIMIT 5;"
+```
+
+---
+
+## How the Architecture Works: Dev vs. Prod
+
+### Development Flow
+
+```
+Request to /api/auth/[...nextauth]
+        ↓
+Next.js routes (Node.js runtime available)
+        ↓
+app/api/auth/[...nextauth]/route.ts
+        ↓
+lib/auth/index.ts: createAuth()
+        ↓
+NODE_ENV === "development"
+        ↓
+getLocalDb() → better-sqlite3
+        ↓
+./local.db (local SQLite file)
+        ↓
+DrizzleAdapter processes auth request
+        ↓
+User/session created locally
+```
+
+### Production Flow
+
+```
+Request to /api/auth/[...nextauth]
+        ↓
+Cloudflare Worker (OpenNext transformed code)
+        ↓
+app/api/auth/[...nextauth]/route.ts (adapted)
+        ↓
+lib/auth/index.ts: createAuth()
+        ↓
+NODE_ENV !== "development"
+        ↓
+getDb(env) → Drizzle ORM
+        ↓
+env.DB (Cloudflare D1 binding)
+        ↓
+Cloudflare D1 (edge SQLite)
+        ↓
+DrizzleAdapter processes auth request
+        ↓
+User/session created in D1
+```
+
+### Key Architectural Decisions
+
+**1. DrizzleAdapter (Not D1Adapter)**
+- `@auth/drizzle-adapter`: Works with any Drizzle ORM instance
+- `@auth/d1-adapter`: Only works with D1, fails in local development
+- Using DrizzleAdapter allows seamless dev/prod switching
+
+**2. Environment-based Database Selection**
+- Checked at runtime in `lib/auth/index.ts`
+- `NODE_ENV` determines which database to use
+- No code recompilation needed
+
+**3. Node.js Runtime (Not Edge)**
+- Required for `better-sqlite3` in development
+- OpenNext adapts it for Cloudflare Workers in production
+- Auth route works in both environments unchanged
+
+**4. Schema Structure**
+- Must use `usersTable`, `accountsTable`, etc. keys
+- Drizzle ORM abstracts away database-specific SQL
+- Same schema file (`drizzle/schema/users.ts`) works everywhere
+
+---
+
+## Troubleshooting Production Deployment
+
+### Issue: "DB is undefined" error after deploying
+
+**Cause:** D1 binding not properly configured in `wrangler.jsonc`
+
+**Fix:**
+1. Check `wrangler.jsonc` has `d1_databases` with binding name `DB`
+2. Verify `database_id` is correct (from `wrangler d1 create`)
+3. Re-deploy: `pnpm deploy`
+
+### Issue: "no such table: users" after deploying
+
+**Cause:** Migrations weren't applied to production D1
+
+**Fix:**
+```bash
+# Apply migrations to remote D1
+wrangler d1 migrations apply cf-next-llm-db --remote
+
+# Verify with a test query
+wrangler d1 execute cf-next-llm-db --remote \
+  --command "SELECT name FROM sqlite_master WHERE type='table';"
+```
+
+### Issue: OAuth redirects work locally but fail in production
+
+**Cause:** Redirect URI mismatch in OAuth provider settings
+
+**Fix:**
+1. Get your actual workers domain after deployment
+   ```bash
+   # Check your deployed URL
+   wrangler deployments list
+   ```
+2. Update OAuth provider settings (Google Cloud Console, GitHub) with exact URL:
+   - `https://your-exact-workers-domain.workers.dev/api/auth/callback/google`
+3. Verify `NEXTAUTH_URL` secret is set correctly
+
+### Issue: Sessions not persisting across requests in production
+
+**Cause:** Secrets not properly set or AUTH_SECRET mismatch
+
+**Fix:**
+```bash
+# Ensure AUTH_SECRET is set
+wrangler secret list | grep AUTH_SECRET
+
+# If missing, set it
+wrangler secret put AUTH_SECRET
+
+# Regenerate if changed locally
+openssl rand -base64 32
+```
+
+### Issue: "Configuration" error when signing in
+
+**Cause:** Missing `NEXTAUTH_URL` or D1 binding not accessible
+
+**Fix:**
+1. Set `NEXTAUTH_URL` secret:
+   ```bash
+   wrangler secret put NEXTAUTH_URL
+   # https://your-app.your-subdomain.workers.dev
+   ```
+2. Verify D1 binding in `wrangler.jsonc`
+3. Check Wrangler logs: `wrangler tail`
+
+---
+
+## Important Notes for Developers
+
+### ⚠️ Do NOT Change These
+
+1. **Runtime Configuration**: Keep `export const runtime = "nodejs"` in `app/api/auth/[...nextauth]/route.ts`
+   - Changing to `"edge"` will break local development
+   - OpenNext handles adaptation for Cloudflare Workers
+
+2. **DrizzleAdapter Schema Keys**: Keep exactly as is in `lib/auth/index.ts`
+   ```typescript
+   const adapterSchema = {
+     usersTable: users,        // ← Must be exactly this key name
+     accountsTable: accounts,  // ← Must be exactly this key name
+     // ... etc
+   };
+   ```
+   - These key names are required by DrizzleAdapter
+   - Different naming will cause "no such table" errors
+
+3. **Database Selection Logic**: Don't remove the `NODE_ENV` check
+   - It's critical for dev/prod separation
+   - Removing it will cause failures in one environment or the other
+
+### ✅ Safe to Modify
+
+1. **Auth Providers** (`lib/auth/config.ts`)
+   - Add/remove OAuth providers
+   - Modify credentials provider logic
+   - Add new authentication methods
+
+2. **Error Pages** (`app/auth/error/page.tsx`)
+   - Update error message styling
+   - Add custom error handling
+   - Improve UX
+
+3. **Database Secrets** (`wrangler.jsonc`)
+   - Update database_id for different D1 instance
+   - Add new bindings for other services
+
+### For Production Usage
+
+**Before First Deployment:**
+- [ ] Create D1 database with `wrangler d1 create`
+- [ ] Update `wrangler.jsonc` with database_id
+- [ ] Set all secrets with `wrangler secret put`
+- [ ] Update OAuth provider redirect URIs
+- [ ] Test locally with demo credentials
+
+**During Deployment:**
+- [ ] Run `pnpm build` to compile
+- [ ] Apply migrations: `wrangler d1 migrations apply cf-next-llm-db --remote`
+- [ ] Deploy with `pnpm deploy`
+- [ ] Test OAuth flow in production
+- [ ] Verify database tables exist: `wrangler d1 execute cf-next-llm-db --remote --command "SELECT COUNT(*) as table_count FROM sqlite_master WHERE type='table';"`
 
 ---
 
