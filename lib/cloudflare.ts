@@ -1,8 +1,8 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import type { CloudflareEnv } from "./db";
+import type { CloudflareEnv, DbInstance } from "./db";
 
 // Re-export CloudflareEnv for convenience
-export type { CloudflareEnv };
+export type { CloudflareEnv, DbInstance };
 
 // Extended env with secrets
 export interface CloudflareEnvWithSecrets extends CloudflareEnv {
@@ -51,11 +51,20 @@ export async function getEnv(): Promise<CloudflareEnvWithSecrets> {
 }
 
 /**
- * Get database from Cloudflare context.
+ * Get database from Cloudflare context or local SQLite for development.
  * Convenience wrapper that combines getEnv and getDb.
+ *
+ * In development mode (NODE_ENV=development), uses local SQLite database.
+ * In production, uses Cloudflare D1 database.
  */
 export async function getDatabase() {
-  const { getDb } = await import("./db");
+  const { getDb, getLocalDb } = await import("./db");
+
+  // Use local SQLite in development, D1 in production
+  if (process.env.NODE_ENV === "development") {
+    return getLocalDb();
+  }
+
   const env = await getEnv();
   return getDb(env);
 }

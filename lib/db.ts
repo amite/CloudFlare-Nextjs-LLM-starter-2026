@@ -1,4 +1,6 @@
 import * as schema from "@/drizzle/schema";
+import Database from "better-sqlite3";
+import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { drizzle } from "drizzle-orm/d1";
 
 // Type for Cloudflare environment bindings
@@ -8,13 +10,20 @@ export interface CloudflareEnv {
   ASSETS: Fetcher;
 }
 
-// Get database instance from D1 binding
+// Get database instance from D1 binding (for production/Cloudflare)
 export function getDb(env: CloudflareEnv) {
   return drizzle(env.DB, { schema });
 }
 
+// Get database instance from local SQLite (for development)
+export function getLocalDb() {
+  const dbPath = process.env.DATABASE_URL?.replace("file:", "") || "./local.db";
+  const sqlite = new Database(dbPath);
+  return drizzleBetterSqlite(sqlite, { schema });
+}
+
 // Type export for the database instance
-export type Database = ReturnType<typeof getDb>;
+export type DbInstance = ReturnType<typeof getDb> | ReturnType<typeof getLocalDb>;
 
 // Helper to get the Cloudflare env from various contexts
 export function getCloudflareEnv(): CloudflareEnv | null {

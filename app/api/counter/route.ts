@@ -4,7 +4,9 @@ import { createRequestLogger } from "@/lib/logger";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
+// Use Node.js runtime for local development (supports better-sqlite3)
+// In production on Cloudflare Workers, this will run in edge runtime
+export const runtime = "nodejs";
 
 // GET - Fetch counter value
 export async function GET() {

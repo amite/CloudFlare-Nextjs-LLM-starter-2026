@@ -89,6 +89,8 @@ AUTH_SECRET=<generated-secret>
 
 ### 4. Database Setup
 
+> **Note:** If you encounter index conflict errors during `db:push`, see the [Troubleshooting](#troubleshooting) section.
+
 ```bash
 # Generate database migrations
 pnpm db:generate
@@ -133,6 +135,8 @@ pnpm dev
 curl http://localhost:3000/api/counter
 # Should return: {"id":1,"name":"default","value":...}
 ```
+
+> **Note:** The counter uses local SQLite database in development mode. If you encounter edge runtime errors, see the [Troubleshooting](#troubleshooting) section.
 
 #### Test 3: LLM Chat (OpenAI)
 ```bash
@@ -410,6 +414,7 @@ Your app will be available at `https://cf-next-llm-app.<your-subdomain>.workers.
 | `pnpm db:seed` | Seed database |
 | `pnpm python:up` | Start Python service |
 | `pnpm python:down` | Stop Python service |
+| `pnpm tsx scripts/debug-db.ts` | Debug database connectivity and test operations |
 
 ---
 
@@ -436,12 +441,54 @@ Your app will be available at `https://cf-next-llm-app.<your-subdomain>.workers.
 
 ### Database Issues
 
+#### Index already exists error
+If you see `SqliteError: index authenticators_credentialID_unique already exists` during `pnpm db:push`, it means your local database schema has become inconsistent with Drizzle's tracking. This often happens if the database was modified outside of Drizzle or if a push was interrupted.
+
+**Fix:** The simplest solution is to reset the local database:
+```bash
+rm local.db
+pnpm db:push
+pnpm db:seed
+```
+
+#### General Reset
 ```bash
 # Reset local database
 rm -f local.db
 pnpm db:push
 pnpm db:seed
 ```
+
+### Edge Runtime Error in Local Development
+
+If you see `The edge runtime does not support Node.js 'fs' module` error when accessing the counter example:
+
+**Cause:** This error occurs when an API route is configured to use edge runtime but tries to use Node.js modules (like `better-sqlite3`) that aren't available in edge runtime.
+
+**Fix:** The counter API route has been configured to use Node.js runtime in development. If you encounter this error:
+
+1. **Restart the development server** (required after runtime changes):
+   ```bash
+   # Stop server (Ctrl+C)
+   pnpm dev
+   ```
+
+2. **Verify the runtime configuration** in `app/api/counter/route.ts`:
+   ```typescript
+   export const runtime = "nodejs";  // Not "edge"
+   ```
+
+3. **Test the counter**:
+   ```bash
+   curl http://localhost:3000/api/counter
+   ```
+
+**How it works:**
+- **Development:** Uses Node.js runtime with local SQLite database (`local.db`)
+- **Production:** Uses edge runtime with Cloudflare D1 database
+- The `getDatabase()` function in `lib/cloudflare.ts` automatically selects the appropriate database
+
+For more details, see [`artifacts/completed/issues/counter-edge-runtime-error.md`](artifacts/completed/issues/counter-edge-runtime-error.md).
 
 ### Build Issues
 
