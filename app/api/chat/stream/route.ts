@@ -62,6 +62,11 @@ export async function POST(request: Request) {
       },
     });
 
+    logger.info("Stream chat result obtained", {
+      provider: result.provider,
+      model: result.model,
+    });
+
     // Track usage after stream completes (non-blocking)
     result.response
       .then(async (response) => {

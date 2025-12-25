@@ -37,6 +37,7 @@ export interface LLMStreamCallbacks {
 // Model pricing in USD per 1K tokens (as of Dec 2024)
 export const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   // OpenAI models
+  "gpt-5-nano": { input: 0.00015, output: 0.0006 },
   "gpt-4o": { input: 0.0025, output: 0.01 },
   "gpt-4o-mini": { input: 0.00015, output: 0.0006 },
   "gpt-4-turbo": { input: 0.01, output: 0.03 },
@@ -44,6 +45,7 @@ export const MODEL_PRICING: Record<string, { input: number; output: number }> = 
   "gpt-3.5-turbo": { input: 0.0005, output: 0.0015 },
 
   // Gemini models
+  "gemini-2.0-flash-exp": { input: 0.000075, output: 0.0003 },
   "gemini-1.5-pro": { input: 0.00125, output: 0.005 },
   "gemini-1.5-flash": { input: 0.000075, output: 0.0003 },
   "gemini-1.0-pro": { input: 0.0005, output: 0.0015 },
@@ -63,6 +65,6 @@ export function calculateCost(model: string, usage: LLMUsage): number {
 
 // Default models for each provider
 export const DEFAULT_MODELS: Record<LLMProvider, string> = {
-  openai: "gpt-4o-mini",
-  gemini: "gemini-1.5-flash",
+  openai: "gpt-5-nano",
+  gemini: "gemini-2.0-flash-exp",
 };

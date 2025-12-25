@@ -93,7 +93,7 @@ export default function ChatPage() {
             <div className="text-center">
               <p className="text-lg">Start a conversation</p>
               <p className="mt-1 text-sm">
-                Using {provider === "openai" ? "OpenAI GPT-4o-mini" : "Google Gemini 1.5 Flash"}
+                Using {provider === "openai" ? "OpenAI GPT-5 Nano" : "Google Gemini 2.0 Flash"}
               </p>
             </div>
           </div>

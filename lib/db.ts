@@ -3,6 +3,9 @@ import Database from "better-sqlite3";
 import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { drizzle } from "drizzle-orm/d1";
 
+// Re-export Database type for use in other modules
+export type { default as Database } from "better-sqlite3";
+
 // Type for Cloudflare environment bindings
 export interface CloudflareEnv {
   DB: D1Database;

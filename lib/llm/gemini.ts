@@ -27,7 +27,7 @@ export async function streamGeminiChat(
   response: Promise<LLMResponse>;
 }> {
   const google = createGeminiClient(config.apiKey);
-  const model = config.model || "gemini-1.5-flash";
+  const model = config.model || "gemini-2.0-flash-exp";
 
   let finalUsage: LLMUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
   let fullContent = "";
@@ -54,17 +54,27 @@ export async function streamGeminiChat(
   return {
     stream,
     usage: (async () => {
-      await result;
-      return finalUsage;
+      try {
+        await result;
+        return finalUsage;
+      } catch (error) {
+        console.error("Gemini usage tracking error:", error);
+        throw error;
+      }
     })(),
     response: (async (): Promise<LLMResponse> => {
-      await result;
-      return {
-        content: fullContent,
-        usage: finalUsage,
-        model,
-        provider: "gemini",
-      };
+      try {
+        await result;
+        return {
+          content: fullContent,
+          usage: finalUsage,
+          model,
+          provider: "gemini",
+        };
+      } catch (error) {
+        console.error("Gemini response error:", error);
+        throw error;
+      }
     })(),
   };
 }
@@ -77,7 +87,7 @@ export async function generateGeminiChat(
   config: GeminiConfig
 ): Promise<LLMResponse> {
   const google = createGeminiClient(config.apiKey);
-  const model = config.model || "gemini-1.5-flash";
+  const model = config.model || "gemini-2.0-flash-exp";
 
   const result = await generateText({
     model: google(model),

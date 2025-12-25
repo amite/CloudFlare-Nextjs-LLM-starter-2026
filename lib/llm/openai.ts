@@ -29,7 +29,7 @@ export async function streamOpenAIChat(
   response: Promise<LLMResponse>;
 }> {
   const openai = createOpenAIClient(config.apiKey);
-  const model = config.model || "gpt-4o-mini";
+  const model = config.model || "gpt-5-nano";
 
   let finalUsage: LLMUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
   let fullContent = "";
@@ -79,7 +79,7 @@ export async function generateOpenAIChat(
   config: OpenAIConfig
 ): Promise<LLMResponse> {
   const openai = createOpenAIClient(config.apiKey);
-  const model = config.model || "gpt-4o-mini";
+  const model = config.model || "gpt-5-nano";
 
   const result = await generateText({
     model: openai(model),

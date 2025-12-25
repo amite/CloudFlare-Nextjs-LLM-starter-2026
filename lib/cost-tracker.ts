@@ -1,6 +1,6 @@
 import { type NewUsageLog, usageLogs } from "@/drizzle/schema";
-import { and, eq, gte, lte, sql } from "drizzle-orm";
-import type { Database } from "./db";
+import { and, eq, gte, lte } from "drizzle-orm";
+import type { DbInstance } from "./db";
 import { type LLMProvider, type LLMUsage, calculateCost } from "./llm/types";
 import { type LLMLogContext, logger } from "./logger";
 
@@ -22,7 +22,7 @@ export interface UsageSummary {
  * Logs usage to the database and provides analytics.
  */
 export class CostTracker {
-  private db: Database | null = null;
+  private db: DbInstance | null = null;
   private config: CostTrackerConfig;
 
   constructor(config: CostTrackerConfig = {}) {
@@ -35,7 +35,7 @@ export class CostTracker {
   /**
    * Set the database instance for logging.
    */
-  setDatabase(db: Database): void {
+  setDatabase(db: DbInstance): void {
     this.db = db;
   }
 
@@ -118,14 +118,16 @@ export class CostTracker {
     today.setHours(0, 0, 0, 0);
 
     try {
-      const result = await this.db
-        .select({
-          totalCost: sql<number>`SUM(${usageLogs.costUsd})`,
-        })
-        .from(usageLogs)
-        .where(gte(usageLogs.createdAt, today));
+      type AggregateResult = {
+        totalCost: number | null;
+      };
 
-      const dailyCost = result[0]?.totalCost || 0;
+      const result = (await this.db
+        .select()
+        .from(usageLogs)
+        .where(gte(usageLogs.createdAt, today))) as unknown as AggregateResult[];
+
+      const dailyCost = result.reduce((sum, log) => sum + (log as any).costUsd, 0);
 
       if (dailyCost > this.config.alertThreshold) {
         logger.warn("Daily cost threshold exceeded", {
@@ -153,7 +155,7 @@ export class CostTracker {
   ): Promise<UsageSummary | null> {
     if (!this.db) return null;
 
-    const conditions = [];
+    const conditions: Array<ReturnType<typeof gte | typeof lte | typeof eq>> = [];
 
     if (options.startDate) {
       conditions.push(gte(usageLogs.createdAt, options.startDate));
