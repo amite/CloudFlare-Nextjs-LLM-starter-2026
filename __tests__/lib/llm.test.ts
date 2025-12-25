@@ -52,9 +52,11 @@ describe("LLM utilities", () => {
     it("should have pricing for all expected models", () => {
       expect(MODEL_PRICING["gpt-4o"]).toBeDefined();
       expect(MODEL_PRICING["gpt-4o-mini"]).toBeDefined();
+      expect(MODEL_PRICING["gpt-5-nano"]).toBeDefined();
       expect(MODEL_PRICING["gpt-4-turbo"]).toBeDefined();
       expect(MODEL_PRICING["gemini-1.5-pro"]).toBeDefined();
       expect(MODEL_PRICING["gemini-1.5-flash"]).toBeDefined();
+      expect(MODEL_PRICING["gemini-2.0-flash-exp"]).toBeDefined();
     });
 
     it("should have input and output pricing for each model", () => {
@@ -69,8 +71,8 @@ describe("LLM utilities", () => {
 
   describe("DEFAULT_MODELS", () => {
     it("should have default models for each provider", () => {
-      expect(DEFAULT_MODELS.openai).toBe("gpt-4o-mini");
-      expect(DEFAULT_MODELS.gemini).toBe("gemini-1.5-flash");
+      expect(DEFAULT_MODELS.openai).toBe("gpt-5-nano");
+      expect(DEFAULT_MODELS.gemini).toBe("gemini-2.0-flash-exp");
     });
   });
 
