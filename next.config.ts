@@ -28,6 +28,18 @@ const nextConfig: NextConfig = {
 
   // Enable React strict mode
   reactStrictMode: true,
+
+  // Webpack configuration to externalize better-sqlite3 for edge runtime
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Externalize better-sqlite3 to avoid bundling native modules in edge runtime
+      config.externals = config.externals || [];
+      if (Array.isArray(config.externals)) {
+        config.externals.push("better-sqlite3");
+      }
+    }
+    return config;
+  },
 };
 
 export default nextConfig;

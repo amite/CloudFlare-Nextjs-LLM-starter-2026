@@ -3,7 +3,7 @@ import { createRequestLogger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-export const runtime = "edge";
+// Runtime will be adapted by OpenNext for Cloudflare Workers
 
 const requestSchema = z.object({
   data: z.string(),

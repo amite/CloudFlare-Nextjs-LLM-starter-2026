@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import type { CloudflareEnv, DbInstance } from "./db";
+import type { CloudflareEnv, DbInstance } from "./db-types";
 
 // Re-export CloudflareEnv for convenience
 export type { CloudflareEnv, DbInstance };

@@ -3,15 +3,13 @@ import Database from "better-sqlite3";
 import { drizzle as drizzleBetterSqlite } from "drizzle-orm/better-sqlite3";
 import { drizzle } from "drizzle-orm/d1";
 
+import type { CloudflareEnv } from "./db-types";
+
+// Re-export types from db-types to avoid importing better-sqlite3 in type-only contexts
+export type { CloudflareEnv, DbInstance } from "./db-types";
+
 // Re-export Database type for use in other modules
 export type { default as Database } from "better-sqlite3";
-
-// Type for Cloudflare environment bindings
-export interface CloudflareEnv {
-  DB: D1Database;
-  LOGS_BUCKET?: R2Bucket;
-  ASSETS: Fetcher;
-}
 
 // Get database instance from D1 binding (for production/Cloudflare)
 export function getDb(env: CloudflareEnv) {
@@ -24,9 +22,6 @@ export function getLocalDb() {
   const sqlite = new Database(dbPath);
   return drizzleBetterSqlite(sqlite, { schema });
 }
-
-// Type export for the database instance
-export type DbInstance = ReturnType<typeof getDb> | ReturnType<typeof getLocalDb>;
 
 // Helper to get the Cloudflare env from various contexts
 export function getCloudflareEnv(): CloudflareEnv | null {

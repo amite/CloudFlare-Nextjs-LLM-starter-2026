@@ -122,7 +122,10 @@ export class CostTracker {
       const logs = await this.db.select().from(usageLogs).where(gte(usageLogs.createdAt, today));
 
       // Calculate total cost manually
-      const dailyCost = logs.reduce((sum, log) => sum + log.costUsd, 0);
+      const dailyCost = logs.reduce(
+        (sum: number, log: { costUsd: number }) => sum + log.costUsd,
+        0
+      );
 
       if (dailyCost > this.config.alertThreshold) {
         logger.warn("Daily cost threshold exceeded", {
