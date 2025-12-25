@@ -1,7 +1,7 @@
 import { authConfig } from "@/lib/auth/config";
 import NextAuth from "next-auth";
 
-// Create auth middleware using edge-compatible config (no database adapter)
+// Create auth proxy using edge-compatible config (no database adapter)
 const { auth } = NextAuth(authConfig);
 
 export default auth;
