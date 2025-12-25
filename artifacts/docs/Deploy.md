@@ -57,18 +57,18 @@ Cloudflare Workers (Next.js + OpenNext)
 
 ### Required Tools
 
-- [ ] Cloudflare account: https://dash.cloudflare.com
-- [ ] Wrangler CLI installed: `pnpm add -D wrangler`
-- [ ] Node.js 20+
-- [ ] pnpm 9.15+
+- [x] Cloudflare account: https://dash.cloudflare.com
+- [x] Wrangler CLI installed: `pnpm add -D wrangler`
+- [x] Node.js 20+
+- [x] pnpm 9.15+
 
 ### Required API Keys
 
-- [ ] `AUTH_SECRET` - Generate: `openssl rand -base64 32`
-- [ ] `OPENAI_API_KEY` - From OpenAI dashboard
-- [ ] `GEMINI_API_KEY` - From Google AI Studio
-- [ ] `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` - Google Cloud Console
-- [ ] `GITHUB_CLIENT_ID` + `GITHUB_CLIENT_SECRET` - GitHub Developer Settings
+- [x] `AUTH_SECRET` - Generate: `openssl rand -base64 32`
+- [x] `OPENAI_API_KEY` - From OpenAI dashboard
+- [x] `GEMINI_API_KEY` - From Google AI Studio
+- [x] `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` - Google Cloud Console
+- [x] `GITHUB_CLIENT_ID` + `GITHUB_CLIENT_SECRET` - GitHub Developer Settings
 
 ### Local Environment
 
