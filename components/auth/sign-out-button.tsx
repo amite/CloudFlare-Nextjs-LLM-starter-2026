@@ -13,6 +13,7 @@ export function SignOutButton() {
 
   return (
     <button
+      type="button"
       onClick={handleSignOut}
       disabled={isLoading}
       className="inline-flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-600 dark:hover:bg-red-700"

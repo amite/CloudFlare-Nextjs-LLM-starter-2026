@@ -1,6 +1,6 @@
 import { accounts, authenticators, sessions, users, verificationTokens } from "@/drizzle/schema";
 import type { CloudflareEnvWithSecrets } from "@/lib/cloudflare";
-import { getDb, getLocalDb } from "@/lib/db";
+import { type DbInstance, getDb, getLocalDb } from "@/lib/db";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import NextAuth from "next-auth";
 import { authConfig } from "./config";
@@ -10,7 +10,7 @@ import { authConfig } from "./config";
  * Uses local SQLite in development and D1 in production.
  */
 export function createAuth(env: CloudflareEnvWithSecrets) {
-  let database;
+  let database: DbInstance;
 
   // Use appropriate database based on environment
   if (process.env.NODE_ENV === "development") {
