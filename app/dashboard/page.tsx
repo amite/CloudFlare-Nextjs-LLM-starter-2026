@@ -1,15 +1,17 @@
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import Link from "next/link";
 
 export default function DashboardPage() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <Link
           href="/"
           className="text-gray-500 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
         >
           ← Back to Home
         </Link>
+        <SignOutButton />
       </div>
 
       <h1 className="mb-2 font-bold text-3xl">Dashboard</h1>

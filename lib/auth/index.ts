@@ -1,16 +1,36 @@
+import { accounts, authenticators, sessions, users, verificationTokens } from "@/drizzle/schema";
 import type { CloudflareEnvWithSecrets } from "@/lib/cloudflare";
-import { D1Adapter } from "@auth/d1-adapter";
+import { getDb, getLocalDb } from "@/lib/db";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import NextAuth from "next-auth";
 import { authConfig } from "./config";
 
 /**
- * Create Auth.js instance with D1 adapter.
- * This must be called with the Cloudflare env to get the D1 database binding.
+ * Create Auth.js instance with Drizzle adapter.
+ * Uses local SQLite in development and D1 in production.
  */
 export function createAuth(env: CloudflareEnvWithSecrets) {
+  let database;
+
+  // Use appropriate database based on environment
+  if (process.env.NODE_ENV === "development") {
+    database = getLocalDb();
+  } else {
+    database = getDb(env);
+  }
+
+  // Create schema object in the format expected by DrizzleAdapter
+  const adapterSchema = {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+    authenticatorsTable: authenticators,
+  };
+
   return NextAuth({
     ...authConfig,
-    adapter: D1Adapter(env.DB),
+    adapter: DrizzleAdapter(database, adapterSchema),
     secret: env.AUTH_SECRET,
   });
 }

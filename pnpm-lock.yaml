@@ -17,6 +17,9 @@ importers:
       '@auth/d1-adapter':
         specifier: ^1.7.4
         version: 1.11.1
+      '@auth/drizzle-adapter':
+        specifier: ^1.11.1
+        version: 1.11.1
       '@opennextjs/cloudflare':
         specifier: ^1.0.0
         version: 1.14.7(next@15.5.9(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(wrangler@3.114.16(@cloudflare/workers-types@4.20251225.0))
@@ -247,6 +250,9 @@ packages:
 
   '@auth/d1-adapter@1.11.1':
     resolution: {integrity: sha512-GRk18igRlGb0DYqskicf5101Q08WCbFCjuf5zyqqCnSShGKY43r3FkVI14sZLbkQZ8oJTciH8vCfkfQgTKHGiQ==}
+
+  '@auth/drizzle-adapter@1.11.1':
+    resolution: {integrity: sha512-cQTvDZqsyF7RPhDm/B6SvqdVP9EzQhy3oM4Muu7fjjmSYFLbSR203E6dH631ZHSKDn2b4WZkfMnjPDzRsPSAeA==}
 
   '@aws-crypto/crc32@5.2.0':
     resolution: {integrity: sha512-nLbCWqQNgUiwwtFsen1AdzAtvuLRsQS8rYgMuxCrdKf9kOssamGLuPwyTY9wyYblNr9+1XM8v6zoDTPPSIeANg==}
@@ -4927,6 +4933,14 @@ snapshots:
       preact-render-to-string: 6.5.11(preact@10.24.3)
 
   '@auth/d1-adapter@1.11.1':
+    dependencies:
+      '@auth/core': 0.41.1
+    transitivePeerDependencies:
+      - '@simplewebauthn/browser'
+      - '@simplewebauthn/server'
+      - nodemailer
+
+  '@auth/drizzle-adapter@1.11.1':
     dependencies:
       '@auth/core': 0.41.1
     transitivePeerDependencies:

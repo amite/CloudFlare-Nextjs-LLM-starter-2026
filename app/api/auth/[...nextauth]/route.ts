@@ -1,7 +1,9 @@
 import { createAuth } from "@/lib/auth";
 import { getEnv } from "@/lib/cloudflare";
 
-export const runtime = "edge";
+// Use Node.js runtime to support both local SQLite (development) and D1 (production)
+// The D1 adapter in Auth.js requires database adapter which works in Node.js runtime
+export const runtime = "nodejs";
 
 async function handler(request: Request) {
   const env = await getEnv();

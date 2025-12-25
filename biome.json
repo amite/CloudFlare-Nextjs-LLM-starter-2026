@@ -31,7 +31,8 @@
       "recommended": true,
       "complexity": {
         "noExcessiveCognitiveComplexity": "warn",
-        "noUselessFragments": "error"
+        "noUselessFragments": "error",
+        "noForEach": "warn"
       },
       "correctness": {
         "noUnusedImports": "error",
@@ -45,14 +46,20 @@
         "noNonNullAssertion": "warn",
         "useConst": "error",
         "useImportType": "error",
-        "useNodejsImportProtocol": "error"
+        "useNodejsImportProtocol": "error",
+        "noUnusedTemplateLiteral": "warn"
       },
       "suspicious": {
         "noExplicitAny": "warn",
-        "noConsoleLog": "warn"
+        "noConsoleLog": "warn",
+        "noImplicitAnyLet": "warn"
+      },
+      "a11y": {
+        "noSvgWithoutTitle": "warn",
+        "useButtonType": "warn"
       },
       "nursery": {
-        "useSortedClasses": "warn"
+        "useSortedClasses": "off"
       }
     }
   },

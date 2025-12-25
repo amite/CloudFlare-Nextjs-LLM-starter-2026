@@ -50,6 +50,7 @@ export async function getEnv(): Promise<CloudflareEnvWithSecrets> {
   if (process.env.NODE_ENV === "development") {
     return {
       // Cloudflare bindings (not available in development)
+      // Auth will use Drizzle adapter with local SQLite instead
       DB: undefined as unknown as D1Database,
       ASSETS: undefined as unknown as Fetcher,
       // Environment variables from .env

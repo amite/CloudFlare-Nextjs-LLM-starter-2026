@@ -4,11 +4,11 @@
  * Run with: pnpm tsx scripts/debug-db.ts
  */
 
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { counters } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
 import * as fs from "node:fs";
+import { counters } from "@/drizzle/schema";
+import Database from "better-sqlite3";
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 
 async function debugDatabase() {
   console.info("🔍 Debugging database connection...\n");
