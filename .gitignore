@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# OpenNext / Cloudflare
+.open-next/
+.wrangler/
+.dev.vars
+
+# Database
+*.db
+*.db-journal
+local.db
+.drizzle/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+
+# Test
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Python (if enabled)
+python-services/**/venv/
+python-services/**/__pycache__/
+python-services/**/*.pyc
+python-services/**/.pytest_cache/
+
+# Misc
+*.pem
+.vercel
+.specstory
