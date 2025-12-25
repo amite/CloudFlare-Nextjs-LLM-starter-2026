@@ -272,6 +272,20 @@ curl http://localhost:3000/api/python/example
 
 ---
 
+## Authentication Documentation
+
+For detailed information about how authentication works in this app, including OAuth setup, database schema, and security considerations, see [`artifacts/docs/Auth-1-0.md`](artifacts/docs/Auth-1-0.md).
+
+**Quick Reference:**
+- **Demo Credentials**: `demo@example.com` / `password123`
+- **Sign-In Page**: http://localhost:3000/auth/signin
+- **Protected Routes**: `/dashboard`, `/api/protected/*`
+- **Auth Methods**: GitHub OAuth, Google OAuth, Credentials
+- **Session Strategy**: JWT with httpOnly cookies
+- **Database**: SQLite (dev) / Cloudflare D1 (prod)
+
+---
+
 ## Project Structure
 
 ```
