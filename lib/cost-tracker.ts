@@ -118,16 +118,11 @@ export class CostTracker {
     today.setHours(0, 0, 0, 0);
 
     try {
-      type AggregateResult = {
-        totalCost: number | null;
-      };
+      // Get all usage logs for today
+      const logs = await this.db.select().from(usageLogs).where(gte(usageLogs.createdAt, today));
 
-      const result = (await this.db
-        .select()
-        .from(usageLogs)
-        .where(gte(usageLogs.createdAt, today))) as unknown as AggregateResult[];
-
-      const dailyCost = result.reduce((sum, log) => sum + (log as any).costUsd, 0);
+      // Calculate total cost manually
+      const dailyCost = logs.reduce((sum, log) => sum + log.costUsd, 0);
 
       if (dailyCost > this.config.alertThreshold) {
         logger.warn("Daily cost threshold exceeded", {

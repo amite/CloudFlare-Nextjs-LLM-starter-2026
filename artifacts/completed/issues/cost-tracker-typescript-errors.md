@@ -47,22 +47,20 @@ const dailyCost = result[0]?.totalCost || 0;
 
 **After:**
 ```typescript
-type AggregateResult = {
-  totalCost: number | null;
-};
-
-const result = (await this.db
+// Get all usage logs for today
+const logs = await this.db
   .select()
   .from(usageLogs)
-  .where(gte(usageLogs.createdAt, today))) as unknown as AggregateResult[];
+  .where(gte(usageLogs.createdAt, today));
 
-const dailyCost = result.reduce((sum, log) => sum + (log as any).costUsd, 0);
+// Calculate total cost manually
+const dailyCost = logs.reduce((sum, log) => sum + log.costUsd, 0);
 ```
 
 ### 2. Improved Type Safety
 
-- Added explicit `AggregateResult` type definition
-- Used proper type casting with `as unknown as AggregateResult[]`
+- Removed unnecessary type casting and complex type definitions
+- Used direct property access on properly typed log entries
 - Used `reduce()` to calculate total cost from individual log entries
 - Added proper type annotation for the `conditions` array
 
