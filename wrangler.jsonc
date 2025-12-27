@@ -34,6 +34,6 @@
 	// Environment variables (secrets should be set via `wrangler secret put`)
 	"vars": {
 		"NODE_ENV": "production",
-		"NEXT_PUBLIC_APP_URL": "https://cf-next-llm-app.amit-erandole.workers.dev"
+		"NEXT_PUBLIC_APP_URL": "https://cf-next-llm-app.amite.workers.dev"
 	}
 }
